@@ -16,12 +16,16 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 	return new bootstrap.Tooltip(tooltipTriggerEl);
 });
 
+
+
 let HashTable = {
 	table: [],
 	size: tableSize,
 	count: 0,
 	loadFactor: this.count / this.size
 };
+
+
 
 const AllContainers = document.querySelectorAll("div");
 const AllInputs = document.querySelectorAll("input");
