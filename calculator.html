@@ -43,12 +43,14 @@
                     <option value="1" selected>Int</option>
                     <option value="2">Float</option>
                     <option value="3">Double</option>
-                    <option value="4">Char</option>
-                    <option value="5">String</option>
+                    <!--*
+                      <option value="4">Char</option>
+                      <option value="5">String</option>
+                    -->
                   </select>
                 </div>
               </div>
-              <!--
+              <!--*
               <div class="form-text">
                 The table will be reset every time you
                 change this value
@@ -59,8 +61,7 @@
             <div class="row mb-3">
               <label for="inputHashFunction" class="col-sm-3 col-form-label">Hash Function:</label>
               <div class="col-sm-9 my-auto">
-                <input type="text" class="form-control" id="inputHashFunction" placeholder="(key ^ 2) % tableSize"
-                  data-bs-toggle="tooltip" data-bs-placement="bottom" title="Tooltip on bottom" />
+                <input type="text" class="form-control" id="inputHashFunction" placeholder="(key ^ 2) % tableSize" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Tooltip on bottom" />
               </div>
             </div>
 
