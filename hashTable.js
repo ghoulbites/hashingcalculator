@@ -1,12 +1,18 @@
-//* Default Texts
+//* Defaults
+//? Default Page Texts
 const DEFAULT_DISPLAY_TEXT =
-  '<div class="row my-1">\
-<span class="text-white">some sample text</span>\
+'<div class="row my-1">\
+  <span class="text-white">some sample text</span>\
 </div>'
+
+//? Defaults for Hashtable
+const DEFAULT_HASH_FUNCTION = "24 + k + 11 % s"
+const DEFAULT_DOUBLE_HASH_FUNCTION = "7 - k"
 
 //* Page Elements
 const TABLE_DISPLAY = document.getElementById("table-display")
 
+export {DEFAULT_DISPLAY_TEXT, DEFAULT_HASH_FUNCTION, DEFAULT_DOUBLE_HASH_FUNCTION, TABLE_DISPLAY}
 export class HashTable {
   constructor(size = 7) {
     this.size = size
@@ -15,8 +21,8 @@ export class HashTable {
     this.loadFactor = this.count / this.size
     this.dataType = 1
     this.resolutionMethod = 1
-    this.hashFunctionString = "24 + k + 11 % s"
-    this.doubleHashString = "7 - k"
+    this.hashFunctionString = DEFAULT_HASH_FUNCTION
+    this.doubleHashString = DEFAULT_DOUBLE_HASH_FUNCTION
     this.linearMultiplier = 1
     this.quadraticMultiplier = 1
   }
@@ -69,6 +75,7 @@ export class HashTable {
       let itemString = ""
       if (this.resolutionMethod === 1) {
         itemString = item.toString().replaceAll(",", ", ")
+        itemString = "[ " + itemString + " ]"
       } else {
         itemString = item
         if (itemString === undefined) {
@@ -87,18 +94,28 @@ export class HashTable {
     })
   }
 
+  ResetTable() {
+    this.ClearTable()
+    this.DisplayTable()
+  }
+
   InsertKey(key) {
     if (this.resolutionMethod === 1) {
       InsertKeyWithSeparateChaining(key, this)
+      console.log("Inserted " + key + " with separate chaining")
     }
 
-    if (this.count === this.size) {
+    //! Just return if the key isn't being inserted with separate chaining and the table is full
+    if (this.count === this.size && this.resolutionMethod !== 1) {
       return console.log("Table is full")
     }
+
     if (this.resolutionMethod !== 1) {
       InsertKeyWithOpenAddressing(key, this)
     }
+
     this.count += 1
+    this.UpdateLoadFactor()
     this.DisplayTable()
   }
 
