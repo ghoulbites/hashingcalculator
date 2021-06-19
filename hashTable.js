@@ -1,5 +1,6 @@
 //* Default Texts
-const DEFAULT_DISPLAY_TEXT = '<div class="row my-1">\
+const DEFAULT_DISPLAY_TEXT =
+  '<div class="row my-1">\
 <span class="text-white">some sample text</span>\
 </div>'
 
@@ -9,7 +10,7 @@ const TABLE_DISPLAY = document.getElementById("table-display")
 export class HashTable {
   constructor(size = 7) {
     this.size = size
-    this.table = [14, 51, 125, 124]
+    this.table = []
     this.count = this.table.length
     this.loadFactor = this.count / this.size
     this.dataType = 1
@@ -36,7 +37,7 @@ export class HashTable {
     if (this.resolutionMethod === 1) {
       console.log("Using separate Chaining")
       for (let i = 0; i < this.size; i++) {
-        this.table[i] = [-1, 14]
+        this.table[i] = []
       }
     } else {
       for (let i = 0; i < this.size; i++) {
@@ -49,85 +50,60 @@ export class HashTable {
 
   DisplayTable() {
     TABLE_DISPLAY.innerHTML = DEFAULT_DISPLAY_TEXT
-    if (this.count !== 0) {
-      this.table.forEach((item, index) => {
-        const TABLE_ELEMENT_ROW_CONTAINER = document.createElement("div")
-        TABLE_ELEMENT_ROW_CONTAINER.classList.add("row")
-        TABLE_ELEMENT_ROW_CONTAINER.classList.add("py-1")
-
-        let itemString = ""
+    if (this.count === 0) {
+      for (let i = 0; i < this.size; i++) {
         if (this.resolutionMethod === 1) {
-          itemString = item.toString().replaceAll(",", ", ")
-        } else {
-          itemString = item
-          if (itemString === undefined) {
-            itemString = "Empty"
-          }
+          this.table.push([])
         }
-
-        const TABLE_ELEMENT_TEXT_SPAN = document.createElement("span")
-        TABLE_ELEMENT_TEXT_SPAN.innerText = `Index ${index}: ${itemString}`
-        TABLE_ELEMENT_TEXT_SPAN.classList.add("text-white")
-
-        // Append the span containing the index contents to the row div
-        TABLE_ELEMENT_ROW_CONTAINER.appendChild(TABLE_ELEMENT_TEXT_SPAN)
-        // Append the row div to the table display container
-        TABLE_DISPLAY.appendChild(TABLE_ELEMENT_ROW_CONTAINER)
-      })
+        else {
+          this.table.push(undefined)
+        }
+      }
     }
+
+    this.table.forEach((item, index) => {
+      const TABLE_ELEMENT_ROW_CONTAINER = document.createElement("div")
+      TABLE_ELEMENT_ROW_CONTAINER.classList.add("row")
+      TABLE_ELEMENT_ROW_CONTAINER.classList.add("py-1")
+
+      let itemString = ""
+      if (this.resolutionMethod === 1) {
+        itemString = item.toString().replaceAll(",", ", ")
+      } else {
+        itemString = item
+        if (itemString === undefined) {
+          itemString = "Empty"
+        }
+      }
+
+      const TABLE_ELEMENT_TEXT_SPAN = document.createElement("span")
+      TABLE_ELEMENT_TEXT_SPAN.innerText = `Index ${index}: ${itemString}`
+      TABLE_ELEMENT_TEXT_SPAN.classList.add("text-white")
+
+      // Append the span containing the index contents to the row div
+      TABLE_ELEMENT_ROW_CONTAINER.appendChild(TABLE_ELEMENT_TEXT_SPAN)
+      // Append the row div to the table display container
+      TABLE_DISPLAY.appendChild(TABLE_ELEMENT_ROW_CONTAINER)
+    })
   }
 
   InsertKey(key) {
     if (this.resolutionMethod === 1) {
-      let index
-      try {
-        index = HashFunction(key, this) % this.size
-      } catch (error) {
-        return console.log("Couldn't insert key because of:\n" + error)
-      }
-      this.table[index].push(key)
-      return
+      InsertKeyWithSeparateChaining(key, this)
     }
 
     if (this.count === this.size) {
       return console.log("Table is full")
-    } else {
-      let index = undefined
-      let collisions = 0
-      while (index === undefined || this.table[index] !== undefined || this.table[index] !== null) {
-        //? Linear Probe
-        if (this.resolutionMethod === 2) {
-          try {
-            index = (HashFunction(key, this) + LinearProbe(collisions)) % this.size
-          } catch (error) {
-            return console.log("Couldn't insert key because of:\n" + error)
-          }
-        }
-        //? Quadratic Probe
-        else if (this.resolutionMethod === 3) {
-          try {
-            index = (HashFunction(key, this) + QuadraticProbe(collisions)) % this.size
-          } catch (error) {
-            return console.log("Couldn't insert key because of:\n" + error)
-          }
-        }
-        //? Double Hashing
-        else if (this.resolutionMethod === 4) {
-          try {
-            index = (HashFunction(key, this) + collisions * DoubleHashFunction(key, this)) % this.size
-          } catch (error) {
-            return console.log("Couldn't insert key because of:\n" + error)
-          }
-        }
-        collisions += 1
-      }
-      // If its a valid index, then push the key
-      this.table[index].push(key)
     }
+    if (this.resolutionMethod !== 1) {
+      InsertKeyWithOpenAddressing(key, this)
+    }
+    this.count += 1
     this.DisplayTable()
   }
 
-  DeleteKey(key) {}
+  DeleteKey(key) {
+  }
 }
 
 //* Misc Functions
@@ -179,8 +155,15 @@ function HashFunction(key, tableObject) {
 function GetIndexWithLinearProbe(key, tableObject) {
   let index = undefined
   let collisions = 0
-  while (index === undefined || tableObject.table[index] === undefined || tableObject.table[index] === null) {
-    index = (HashFunction(key, tableObject) + LinearProbe(collisions, tableObject.linearMultiplier)) % tableObject.size
+  while (
+    index === undefined ||
+    tableObject.table[index] === undefined ||
+    tableObject.table[index] === null
+  ) {
+    index =
+      (HashFunction(key, tableObject) +
+        LinearProbe(collisions, tableObject.linearMultiplier)) %
+      tableObject.size
     collisions = collisions + 1
   }
   return index
@@ -189,8 +172,15 @@ function GetIndexWithLinearProbe(key, tableObject) {
 function GetIndexWithQuadraticProbe(key, tableObject) {
   let index = undefined
   let collisions = 0
-  while (index === undefined || tableObject.table[index] === undefined || tableObject.table[index] === null) {
-    index = (HashFunction(key, tableObject) + QuadraticProbe(collisions, tableObject.quadraticMultiplier)) % tableObject.size
+  while (
+    index === undefined ||
+    tableObject.table[index] === undefined ||
+    tableObject.table[index] === null
+  ) {
+    index =
+      (HashFunction(key, tableObject) +
+        QuadraticProbe(collisions, tableObject.quadraticMultiplier)) %
+      tableObject.size
     collisions = collisions + 1
   }
 }
@@ -198,8 +188,15 @@ function GetIndexWithQuadraticProbe(key, tableObject) {
 function GetIndexWithDoubleHashing(key, tableObject) {
   let index = undefined
   let collisions = 0
-  while (index === undefined || tableObject.table[index] === undefined || tableObject.table[index] === null) {
-    index = (HashFunction(key, tableObject) + collisions * DoubleHashFunction(key, tableObject)) % tableObject.size
+  while (
+    index === undefined ||
+    tableObject.table[index] === undefined ||
+    tableObject.table[index] === null
+  ) {
+    index =
+      (HashFunction(key, tableObject) +
+       + collisions * DoubleHashFunction(key, tableObject))
+       % tableObject.size
     collisions = collisions + 1
   }
 }
@@ -210,23 +207,33 @@ function InsertKeyWithSeparateChaining(key, tableObject) {
   try {
     index = HashFunction(key, tableObject) % tableObject.size
   } catch (error) {
-    return console.log("Couldn't insert key because of:\n" + error)
+    console.log("Couldn't insert key because of:\n" + error)
+    return undefined
   }
-  return tableObject.table[index].push(key)
+  tableObject.table[index].push(key)
+  return true
 }
 
 function InsertKeyWithOpenAddressing(key, tableObject) {
+  console.log(tableObject);
   let index = undefined
   if (tableObject.resolutionMethod === 2) {
     index = GetIndexWithLinearProbe(key, tableObject)
+    console.log("First + " + index);
   } else if (tableObject.resolutionMethod === 3) {
     index = GetIndexWithQuadraticProbe(key, tableObject)
+    console.log("Second + " + index);
   } else if (tableObject.resolutionMethod === 4) {
     index = GetIndexWithDoubleHashing(key, tableObject)
+    console.log("Third + " + index);
   }
 
-  if (index === undefined || index === null) {
-    return console.log("There was an error, help pls, I can't read my own code anymore")
+  if (tableObject.table[index] === undefined || tableObject.table[index] === null) {
+    console.log(
+      "There was an error, help pls, I can't read my own code anymore"
+    )
+    return undefined
   }
-  return tableObject.table[index].push(key)
+  tableObject.table[index] = key
+  return true
 }

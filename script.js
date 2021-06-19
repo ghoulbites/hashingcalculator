@@ -25,7 +25,6 @@ const LogQuadraticProbeMultiplier = () => console.log(`Quadratic Probe Multiplie
 const TableSizeInput = document.querySelector("input")
 const TableDataTypeSelect = document.querySelector("select")
 const HashFunctionInput = document.querySelector("div.my-auto input")
-console.log(HashFunctionInput)
 const CollisionResolutionOptions = document.querySelector("fieldset")
 
 
@@ -62,6 +61,7 @@ CollisionResolutionOptions.addEventListener("change", (event) => {
 })
 
 
+/*
 hashTable.DisplayTable()
 LogSize()
 LogCount()
@@ -75,6 +75,14 @@ LogResolutionMethod()
 LogHashFunction()
 
 hashTable.DisplayTable()
+*/
 
+document.addEventListener("DOMContentLoaded", () => {
+  hashTable.DisplayTable()
+  LogCount()
+  LogSize()
+  hashTable.InsertKey(1)
+  hashTable.InsertKey(2)
+})
 
 
