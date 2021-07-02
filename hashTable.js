@@ -1,28 +1,26 @@
-//* Defaults
-//? Default Page Texts
-const DEFAULT_DISPLAY_TEXT =
+export const DEFAULTS = {
+  DEFAULT_TABLE_SIZE: 7,
+  DEFAULT_DISPLAY_TEXT:
 '<div class="row my-1">\
   <span class="text-white">some sample text</span>\
-</div>'
+</div>',
+  DEFAULT_HASH_FUNCTION: "24 + k + 11 % s",
+  DEFAULT_DOUBLE_HASH_FUNCTION: "7 - k",
+  TABLE_DISPLAY: document.getElementById("table-display"),
+  INT_REGEX_STRING: /[^ks+\/%^*\-\d()]/gm,
+  DECIMAL_REGEX_STRING: /(\d+\.\d+)+[^ks+\/%^*\-\d()]+/gm,
+}
 
-//? Defaults for Hashtable
-const DEFAULT_HASH_FUNCTION = "24 + k + 11 % s"
-const DEFAULT_DOUBLE_HASH_FUNCTION = "7 - k"
-
-//* Page Elements
-const TABLE_DISPLAY = document.getElementById("table-display")
-
-export {DEFAULT_DISPLAY_TEXT, DEFAULT_HASH_FUNCTION, DEFAULT_DOUBLE_HASH_FUNCTION, TABLE_DISPLAY}
 export class HashTable {
-  constructor(size = 7) {
+  constructor(size = DEFAULTS.DEFAULT_TABLE_SIZE) {
     this.size = size
     this.table = []
     this.count = this.table.length
     this.loadFactor = this.count / this.size
     this.dataType = 1
     this.resolutionMethod = 1
-    this.hashFunctionString = DEFAULT_HASH_FUNCTION
-    this.doubleHashString = DEFAULT_DOUBLE_HASH_FUNCTION
+    this.hashFunctionString = DEFAULTS.DEFAULT_HASH_FUNCTION
+    this.doubleHashString = DEFAULTS.DEFAULT_DOUBLE_HASH_FUNCTION
     this.linearMultiplier = 1
     this.quadraticMultiplier = 1
   }
@@ -55,7 +53,7 @@ export class HashTable {
   }
 
   DisplayTable() {
-    TABLE_DISPLAY.innerHTML = DEFAULT_DISPLAY_TEXT
+    DEFAULTS.TABLE_DISPLAY.innerHTML = DEFAULTS.DEFAULT_DISPLAY_TEXT
     if (this.count === 0) {
       for (let i = 0; i < this.size; i++) {
         if (this.resolutionMethod === 1) {
@@ -90,7 +88,7 @@ export class HashTable {
       // Append the span containing the index contents to the row div
       TABLE_ELEMENT_ROW_CONTAINER.appendChild(TABLE_ELEMENT_TEXT_SPAN)
       // Append the row div to the table display container
-      TABLE_DISPLAY.appendChild(TABLE_ELEMENT_ROW_CONTAINER)
+      DEFAULTS.TABLE_DISPLAY.appendChild(TABLE_ELEMENT_ROW_CONTAINER)
     })
   }
 
@@ -123,9 +121,16 @@ export class HashTable {
   }
 }
 
+
 //* Misc Functions
-function CheckFunctionStringValidity(hashString) {
-  if (hashString.match(/[^ks+\/%^*\-\d()]/gm) != null) return false
+function CheckFunctionStringValidity(hashString, tableObject) {
+  let regex = DEFAULTS.INT_REGEX_STRING
+  if (tableObject.dataType === 1) {
+    regex = DEFAULTS.INT_REGEX_STRING
+  } else if (tableObject.dataType === 2 || tableObject.dataType === 3) {
+    regex = DEFAULTS.DECIMAL_REGEX_STRING
+  }
+  if (hashString.match(regex) != null) return false
   return true
 }
 
@@ -146,7 +151,7 @@ function DoubleHashFunction(key, tableObject) {
   tempHashString = tempHashString.replaceAll(" ", "")
   //console.log(tempHashString)
 
-  if (!CheckFunctionStringValidity(tempHashString)) return undefined
+  if (!CheckFunctionStringValidity(tempHashString, tableObject)) return undefined
 
   const result = new Function("return " + tempHashString)() % tableObject.size
   //console.log(`Hash Function Result: ${result}`);
@@ -161,7 +166,7 @@ function HashFunction(key, tableObject) {
   tempHashString = tempHashString.replaceAll(" ", "")
   //console.log(tempHashString)
 
-  if (!CheckFunctionStringValidity(tempHashString)) return undefined
+  if (!CheckFunctionStringValidity(tempHashString, tableObject)) return undefined
 
   const result = new Function("return " + tempHashString)() % tableObject.size
   //console.log(`Hash Function Result: ${result}`);
@@ -222,11 +227,12 @@ function GetIndexWithDoubleHashing(key, tableObject) {
 function InsertKeyWithSeparateChaining(key, tableObject) {
   let index
   try {
-    index = HashFunction(key, tableObject) % tableObject.size
+    index = Math.round(HashFunction(key, tableObject) % tableObject.size)
   } catch (error) {
     console.log("Couldn't insert key because of:\n" + error)
     return undefined
   }
+  console.log("index: " + index);
   tableObject.table[index].push(key)
   return true
 }

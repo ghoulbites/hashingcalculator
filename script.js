@@ -1,4 +1,4 @@
-import { DEFAULT_DOUBLE_HASH_FUNCTION, DEFAULT_HASH_FUNCTION, HashTable } from "./hashTable.js"
+import { DEFAULTS, HashTable } from "./hashTable.js"
 
 //! Bootstrap garbage to allow tooltips for <input> element
 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -42,9 +42,15 @@ const DELETE_KEY_BUTTON = _GROUP_INSERT_DELETE_BUTTONS[1]
 
 //* Listener Functions
 TABLE_SIZE_INPUT.addEventListener("focusout", (event) => {
-  let inputValue = event.target.value
-  if (inputValue < 1) inputValue = 7
-  hashTable.size = parseInt(inputValue)
+  let inputValue = parseInt(event.target.value)
+
+  // if the value is empty, set it to the default value
+  if (isNaN(inputValue)) inputValue = DEFAULTS.DEFAULT_TABLE_SIZE
+
+  // if the value is invalid or the same as before, don't reset
+  if (inputValue < 1 || hashTable.size === inputValue) return LogSize()
+
+  hashTable.size = inputValue
   LogSize()
   hashTable.ResetTable()
 })
@@ -57,7 +63,13 @@ TABLE_DATA_TYPE_SELECT.addEventListener("change", (event) => {
 
 HASH_FUNCTION_INPUT.addEventListener("focusout", (event) => {
 	let inputValue = event.target.value
-  if (inputValue === "") inputValue = DEFAULT_HASH_FUNCTION
+
+  // if empty then set it to default
+  if (inputValue === "") inputValue = DEFAULTS.DEFAULT_HASH_FUNCTION
+
+  // if the hash function entered is the same, then don't reset
+  if (hashTable.hashFunctionString === inputValue) return LogHashFunction()
+
   hashTable.hashFunctionString = inputValue
   LogHashFunction()
   hashTable.ResetTable()
@@ -70,24 +82,39 @@ COLLISION_RESOLUTION_RADIO_OPTIONS.addEventListener("change", (event) => {
 })
 
 LINEAR_PROBE_MULTIPLIER_INPUT.addEventListener("focusout", (event) => {
-  let inputValue = event.target.value
-  if (inputValue < 1) inputValue = 1
-  hashTable.linearMultiplier = parseInt(inputValue)
+  let inputValue = parseInt(event.target.value)
+
+  // if the value is empty, set it to the default value
+  if (isNaN(inputValue)) inputValue = 1
+
+  // if the value is invalid or the same as before, don't reset
+  if (inputValue < 1 || hashTable.linearMultiplier === inputValue) return LogLinearProbeMultiplier()
+
+  hashTable.linearMultiplier = inputValue
   LogLinearProbeMultiplier()
   hashTable.ResetTable()
 })
 
 QUADRATIC_PROBE_MULTIPLIER_INPUT.addEventListener("focusout", (event) => {
-  let inputValue = event.target.value
-  if (inputValue < 1) inputValue = 1
-  hashTable.quadraticMultiplier = parseInt(inputValue)
+  let inputValue = parseInt(event.target.value)
+
+  // if the value is empty, set it to the default value
+  if (isNaN(inputValue)) inputValue = 1
+
+  // if the value is invalid or the same as before, don't reset
+  if (inputValue < 1 || hashTable.quadraticMultiplier === inputValue) return LogQuadraticProbeMultiplier()
+
+  hashTable.quadraticMultiplier = inputValue
   LogQuadraticProbeMultiplier()
   hashTable.ResetTable()
 })
 
 DOUBLE_HASH_FUNCTION_INPUT.addEventListener("focusout", (event) => {
 	let inputValue = event.target.value
-  if (inputValue === "") inputValue = DEFAULT_DOUBLE_HASH_FUNCTION
+  if (inputValue === "") inputValue = DEFAULTS.DEFAULT_DOUBLE_HASH_FUNCTION
+
+  if (hashTable.doubleHashString === inputValue) return LogDoubleHashFunction()
+
   hashTable.doubleHashString = inputValue
   LogDoubleHashFunction()
   hashTable.ResetTable()
@@ -98,6 +125,7 @@ INSERT_KEY_BUTTON.addEventListener("click", () => {
   console.log(key);
   if (isNaN(key)) {
     return console.log("not a number")
+    //alert("Key entered is not a number.")
   } else {
     hashTable.InsertKey(key)
     return console.log("a number")
@@ -109,6 +137,7 @@ DELETE_KEY_BUTTON.addEventListener("click", () => {
   console.log(key);
   if (isNaN(key)) {
     return console.log("not a number")
+    //alert("Key entered is not a number.")
   } else {
     return console.log("a number")
   }
@@ -118,10 +147,10 @@ DELETE_KEY_BUTTON.addEventListener("click", () => {
 //! Starting the page
 document.addEventListener("DOMContentLoaded", () => {
   //* Setting Texts on page load
-  //? Hash Function Input Texts
+  //? Hash Function Input Placeholder Text
   HASH_FUNCTION_INPUT.placeholder = hashTable.hashFunctionString
+  //? Hash Function Input Tooltip text
   HASH_FUNCTION_INPUT.setAttribute(
-    // Tooltip text
     "title",
     "Use 'k' to symbolise the key, use 's' to symbolise the table size. The operators are: + for addition, - for subtraction, * for multiplication, / for decimal division, ** for powers, and % for modulus/remainder. Note that // integer division is not supported."
   )
