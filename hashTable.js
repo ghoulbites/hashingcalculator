@@ -134,6 +134,30 @@ function CheckFunctionStringValidity(hashString, tableObject) {
   return true
 }
 
+function CheckIfInteger(inputString) {
+  const regex = /[^\d+]/m
+
+  if (inputString.match(regex) != null) return false
+  return true
+}
+
+function CheckIfFloat(inputString) {
+  const regex = /[^\d\.]/m
+
+  if (inputString.match(regex) != null) return false
+  return true
+}
+
+function FormatHashString(inputString, key, tableObject) {
+  inputString = inputString.replace("key", key)
+  inputString = inputString.replace("size", tableObject.size)
+
+  const regexFilteringCharacters = /[^\d\.+%/*-]/gm
+  const regexPowerOperator = /\d\*{1,2}\d/gm
+  
+}
+
+
 //* Hash and Probe Functions
 function LinearProbe(collisions, multiplier = 1) {
   return multiplier * collisions
@@ -232,7 +256,7 @@ function InsertKeyWithSeparateChaining(key, tableObject) {
     console.log("Couldn't insert key because of:\n" + error)
     return undefined
   }
-  console.log("index: " + index);
+  //console.log("index: " + index);
   tableObject.table[index].push(key)
   return true
 }
@@ -258,5 +282,6 @@ function InsertKeyWithOpenAddressing(key, tableObject) {
     return undefined
   }
   tableObject.table[index] = key
+  console.log("Inserted " + key + " with open addressing")
   return true
 }

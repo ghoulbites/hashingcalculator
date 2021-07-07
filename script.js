@@ -122,7 +122,7 @@ DOUBLE_HASH_FUNCTION_INPUT.addEventListener("focusout", (event) => {
 
 INSERT_KEY_BUTTON.addEventListener("click", () => {
   const key = INSERT_KEY_INPUT.value
-  console.log(key);
+  console.log(key)
   if (isNaN(key)) {
     return console.log("not a number")
     //alert("Key entered is not a number.")
