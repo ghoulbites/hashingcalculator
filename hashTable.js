@@ -9,6 +9,7 @@ export const DEFAULTS = {
   TABLE_DISPLAY: document.getElementById("table-display"),
   INT_REGEX_STRING: /[^ks+\/%^*\-\d()]/gm,
   DECIMAL_REGEX_STRING: /(\d+\.\d+)+[^ks+\/%^*\-\d()]+/gm,
+  MAXIMUM_COLLISIONS: 100
 }
 
 export class HashTable {
@@ -23,6 +24,7 @@ export class HashTable {
     this.doubleHashString = DEFAULTS.DEFAULT_DOUBLE_HASH_FUNCTION
     this.linearMultiplier = 1
     this.quadraticMultiplier = 1
+    this.ResetTable()
   }
 
   UpdateCount() {
@@ -36,8 +38,11 @@ export class HashTable {
     this.UpdateLoadFactor()
   }
 
-  ClearTable() {
+  ResetTable() {
+    this.count = 0
+    this.loadFactor = 0
     this.table = []
+
     if (this.resolutionMethod === 1) {
       console.log("Using separate Chaining")
       for (let i = 0; i < this.size; i++) {
@@ -48,23 +53,14 @@ export class HashTable {
         this.table[i] = undefined
       }
     }
+    console.log(this.table);
 
     this.DisplayTable()
   }
 
   DisplayTable() {
     DEFAULTS.TABLE_DISPLAY.innerHTML = DEFAULTS.DEFAULT_DISPLAY_TEXT
-    if (this.count === 0) {
-      for (let i = 0; i < this.size; i++) {
-        if (this.resolutionMethod === 1) {
-          this.table.push([])
-        }
-        else {
-          this.table.push(undefined)
-        }
-      }
-    }
-
+    
     this.table.forEach((item, index) => {
       const TABLE_ELEMENT_ROW_CONTAINER = document.createElement("div")
       TABLE_ELEMENT_ROW_CONTAINER.classList.add("row")
@@ -92,29 +88,29 @@ export class HashTable {
     })
   }
 
-  ResetTable() {
-    this.ClearTable()
-    this.DisplayTable()
-  }
 
   InsertKey(key) {
+    let check = false;
+    console.log("Size of table: " + this.size + ", count: " + this.count);
+
     if (this.resolutionMethod === 1) {
-      InsertKeyWithSeparateChaining(key, this)
-      console.log("Inserted " + key + " with separate chaining")
+      check = InsertKeyWithSeparateChaining(key, this)
     }
 
-    //! Just return if the key isn't being inserted with separate chaining and the table is full
+    //* Just return if the key isn't being inserted with separate chaining and the table is full
     if (this.count === this.size && this.resolutionMethod !== 1) {
       return console.log("Table is full")
     }
 
     if (this.resolutionMethod !== 1) {
-      InsertKeyWithOpenAddressing(key, this)
+      check = InsertKeyWithOpenAddressing(key, this)
     }
 
-    this.count += 1
-    this.UpdateLoadFactor()
-    this.DisplayTable()
+    if (check) {
+      this.count += 1
+      this.UpdateLoadFactor()
+      this.DisplayTable()
+    }
   }
 
   DeleteKey(key) {
@@ -130,31 +126,62 @@ function CheckFunctionStringValidity(hashString, tableObject) {
   } else if (tableObject.dataType === 2 || tableObject.dataType === 3) {
     regex = DEFAULTS.DECIMAL_REGEX_STRING
   }
-  if (hashString.match(regex) != null) return false
+  if (hashString.match(regex) !== null) return false
   return true
 }
 
 function CheckIfInteger(inputString) {
   const regex = /[^\d+]/m
 
-  if (inputString.match(regex) != null) return false
+  if (inputString.match(regex) !== null) return false
   return true
 }
 
 function CheckIfFloat(inputString) {
   const regex = /[^\d\.]/m
 
-  if (inputString.match(regex) != null) return false
+  if (inputString.match(regex) !== null) return false
   return true
 }
 
 function FormatHashString(inputString, key, tableObject) {
-  inputString = inputString.replace("key", key)
-  inputString = inputString.replace("size", tableObject.size)
+  inputString = inputString.replace("k", key)
+  inputString = inputString.replace("s", tableObject.size)
+  inputString = inputString.replaceAll(" ", "")
 
-  const regexFilteringCharacters = /[^\d\.+%/*-]/gm
-  const regexPowerOperator = /\d\*{1,2}\d/gm
-  
+  console.log(inputString)
+
+  //? They should all be null
+  const regexFilteringCharactersForInt = /[^\d+%/*-]/gm
+  const regexFilteringCharactersForDecimal = /[^\d\.+%/*-]/gm
+  const regexOperatorAmounts = /(\*{3,}|\+{2,}|-{2,}|%{2,}|\/{2,})/gm
+  const regexOperatorsSeparatedByNumbers = /(\D+\*{1,2}\D+|\D+\+\D+|\D+-\D+|\D+%\D+|\D+\/\D+)/gm
+
+  if (tableObject.dataType === 1) {
+    if (
+      inputString.match(regexFilteringCharactersForInt) === null
+      && inputString.match(regexOperatorAmounts) === null
+      && inputString.match(regexOperatorsSeparatedByNumbers) === null
+      ) {
+        console.log("The string: " + inputString + ", matched the criteria for a valid function")
+        return inputString
+      }
+    else {
+      return undefined
+    }
+  } else if (tableObject.dataType === 2 || tableObject.dataType === 3) {
+    if (
+      inputString.match(regexFilteringCharactersForDecimal) === null
+      && inputString.match(regexOperatorAmounts) === null
+      && inputString.match(regexOperatorsSeparatedByNumbers) === null
+      ) {
+        console.log("The string: " + inputString + ", matched the criteria for a valid function")
+        return inputString
+      }
+    else {
+      return undefined
+    }
+  }
 }
 
 
@@ -170,12 +197,22 @@ function QuadraticProbe(collisions, multiplier = 1) {
 function DoubleHashFunction(key, tableObject) {
   //console.log(hashString)
   let tempHashString = tableObject.doubleHashString
+  tempHashString = FormatHashString(tempHashString, key, tableObject)
+  /*
   tempHashString = tempHashString.replace("k", key)
   tempHashString = tempHashString.replace("s", tableObject.size)
   tempHashString = tempHashString.replaceAll(" ", "")
+  */
   //console.log(tempHashString)
 
-  if (!CheckFunctionStringValidity(tempHashString, tableObject)) return undefined
+  if (tempHashString === undefined) {
+    console.log("The string was formatted as undefined")
+    return undefined
+  }
+  if (!CheckFunctionStringValidity(tempHashString, tableObject)) {
+    console.log("The string is invalid")
+    return undefined
+  }
 
   const result = new Function("return " + tempHashString)() % tableObject.size
   //console.log(`Hash Function Result: ${result}`);
@@ -185,12 +222,22 @@ function DoubleHashFunction(key, tableObject) {
 function HashFunction(key, tableObject) {
   //console.log(hashString)
   let tempHashString = tableObject.hashFunctionString
+  tempHashString = FormatHashString(tempHashString, key, tableObject)
+  /*
   tempHashString = tempHashString.replace("k", key)
   tempHashString = tempHashString.replace("s", tableObject.size)
   tempHashString = tempHashString.replaceAll(" ", "")
+  */
   //console.log(tempHashString)
 
-  if (!CheckFunctionStringValidity(tempHashString, tableObject)) return undefined
+  if (tempHashString === undefined) {
+    console.log("The string was formatted as undefined")
+    return undefined
+  }
+  if (!CheckFunctionStringValidity(tempHashString, tableObject)) {
+    console.log("The string is invalid")
+    return undefined
+  }
 
   const result = new Function("return " + tempHashString)() % tableObject.size
   //console.log(`Hash Function Result: ${result}`);
@@ -203,13 +250,15 @@ function GetIndexWithLinearProbe(key, tableObject) {
   let collisions = 0
   while (
     index === undefined ||
-    tableObject.table[index] === undefined ||
-    tableObject.table[index] === null
+    tableObject.table[index] !== undefined
   ) {
-    index =
-      (HashFunction(key, tableObject) +
-        LinearProbe(collisions, tableObject.linearMultiplier)) %
-      tableObject.size
+    //? if it gets to this many collisions then its probably an infinite loop so just stop it
+    if (collisions === DEFAULTS.MAXIMUM_COLLISIONS) return undefined
+
+    index = Math.floor(HashFunction(key, tableObject)
+                       + LinearProbe(collisions, tableObject.linearMultiplier)) % tableObject.size
+    console.log("Index: " + index)
+    console.log("Array Value at Index: " + tableObject.table[index])
     collisions = collisions + 1
   }
   return index
@@ -220,15 +269,18 @@ function GetIndexWithQuadraticProbe(key, tableObject) {
   let collisions = 0
   while (
     index === undefined ||
-    tableObject.table[index] === undefined ||
-    tableObject.table[index] === null
+    tableObject.table[index] !== undefined
   ) {
-    index =
-      (HashFunction(key, tableObject) +
-        QuadraticProbe(collisions, tableObject.quadraticMultiplier)) %
-      tableObject.size
+    //? if it gets to this many collisions then its probably an infinite loop so just stop it
+    if (collisions === DEFAULTS.MAXIMUM_COLLISIONS) return undefined
+
+    index = Math.floor(HashFunction(key, tableObject)
+                       + QuadraticProbe(collisions, tableObject.quadraticMultiplier)) % tableObject.size
+    console.log("Index: " + index)
+    console.log("Array Value at Index: " + tableObject.table[index])
     collisions = collisions + 1
   }
+  return index
 }
 
 function GetIndexWithDoubleHashing(key, tableObject) {
@@ -236,50 +288,49 @@ function GetIndexWithDoubleHashing(key, tableObject) {
   let collisions = 0
   while (
     index === undefined ||
-    tableObject.table[index] === undefined ||
-    tableObject.table[index] === null
+    tableObject.table[index] !== undefined
   ) {
-    index =
-      (HashFunction(key, tableObject) +
-       + collisions * DoubleHashFunction(key, tableObject))
-       % tableObject.size
+    //? if it gets to this many collisions then its probably an infinite loop so just stop it
+    if (collisions === DEFAULTS.MAXIMUM_COLLISIONS) return undefined
+
+    index = Math.floor(HashFunction(key, tableObject)
+                       + collisions * DoubleHashFunction(key, tableObject)) % tableObject.size
     collisions = collisions + 1
   }
+  return index
 }
 
 //* Combination Insertion Functions
 function InsertKeyWithSeparateChaining(key, tableObject) {
-  let index
-  try {
-    index = Math.round(HashFunction(key, tableObject) % tableObject.size)
-  } catch (error) {
-    console.log("Couldn't insert key because of:\n" + error)
-    return undefined
+  let index = Math.floor(HashFunction(key, tableObject)) % tableObject.size
+
+  if (isNaN(index)) {
+    console.log("Undefined index using separate chaining")
+    return false
   }
-  //console.log("index: " + index);
   tableObject.table[index].push(key)
   return true
 }
 
 function InsertKeyWithOpenAddressing(key, tableObject) {
-  console.log(tableObject);
-  let index = undefined
+  console.log(tableObject)
+  let index
   if (tableObject.resolutionMethod === 2) {
     index = GetIndexWithLinearProbe(key, tableObject)
-    console.log("First + " + index);
+    console.log("First + " + index)
   } else if (tableObject.resolutionMethod === 3) {
     index = GetIndexWithQuadraticProbe(key, tableObject)
-    console.log("Second + " + index);
+    console.log("Second + " + index)
   } else if (tableObject.resolutionMethod === 4) {
     index = GetIndexWithDoubleHashing(key, tableObject)
-    console.log("Third + " + index);
+    console.log("Third + " + index)
   }
 
-  if (tableObject.table[index] === undefined || tableObject.table[index] === null) {
+  if (tableObject.table[index] !== undefined) {
     console.log(
       "There was an error, help pls, I can't read my own code anymore"
     )
-    return undefined
+    return false
   }
   tableObject.table[index] = key
   console.log("Inserted " + key + " with open addressing")
