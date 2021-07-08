@@ -124,11 +124,12 @@ INSERT_KEY_BUTTON.addEventListener("click", () => {
   const key = INSERT_KEY_INPUT.value
   console.log(key)
   if (isNaN(key)) {
-    return console.log("not a number")
+    //return console.log("not a number")
     //alert("Key entered is not a number.")
   } else {
     hashTable.InsertKey(key)
-    return console.log("a number")
+    INSERT_KEY_INPUT.value = ""
+    //return console.log("a number")
   }
 })
 
@@ -136,10 +137,12 @@ DELETE_KEY_BUTTON.addEventListener("click", () => {
   const key = DELETE_KEY_INPUT.value
   console.log(key);
   if (isNaN(key)) {
-    return console.log("not a number")
+    //return console.log("not a number")
     //alert("Key entered is not a number.")
   } else {
-    return console.log("a number")
+    hashTable.DeleteKey(key)
+    DELETE_KEY_INPUT.value = ""
+    //return console.log("a number")
   }
 })
 
@@ -161,6 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
   hashTable.InsertKey(2)
   hashTable.InsertKey(124)
   hashTable.InsertKey(9)
+  hashTable.ResetTable()
 })
 
 
